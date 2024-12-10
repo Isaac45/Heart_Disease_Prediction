@@ -18,10 +18,16 @@ st.write("""
 This application uses a machine learning model to predict the likelihood of heart disease based on patient data.
 """)
 
+# Initialize session state for storing patient records
+if "patient_data" not in st.session_state:
+    st.session_state.patient_data = pd.DataFrame(columns=[
+        "age", "sex", "cp", "trtbps", "chol", "fbs", "restecg",
+        "thalachh", "exng", "oldpeak", "slp", "caa", "thall", "Prediction"
+    ])
+
 # Sidebar for user input
 st.sidebar.header("Input Patient Data")
 
-# Input fields for patient data
 def get_user_input():
     age = st.sidebar.number_input("Age", min_value=1, max_value=120, value=55)
     sex = st.sidebar.selectbox("Sex", [0, 1], format_func=lambda x: "Female" if x == 0 else "Male")
@@ -57,40 +63,56 @@ def get_user_input():
     }
     return pd.DataFrame([data])
 
+# Collect user input
 input_df = get_user_input()
-
 # Display user input
 st.subheader("Patient Data")
 st.write(input_df)
 
-# Prediction Button
-if st.button("Predict"):
-    # Perform prediction
+# Predict and record data
+if st.button("Predict and Record"):
+    # Make prediction
     prediction = model.predict(input_df)[0]
     prediction_text = "More chance of heart disease" if prediction == 1 else "Less chance of heart disease"
+    input_df["Prediction"] = prediction_text
+    
+    # Add to session state
+    st.session_state.patient_data = pd.concat([st.session_state.patient_data, input_df], ignore_index=True)
+    
+    # Display result
+    st.success(f"Prediction: {prediction_text}")
 
-    # Display prediction
-    st.subheader("Prediction")
-    st.write(prediction_text)
-
-# Display charts
-if st.checkbox("Show Exploratory Data Analysis (EDA)"):
-    st.subheader("Correlation Heatmap")
-    heart_data = pd.read_csv("heart.csv")
-    correlation_matrix = heart_data.corr()
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
-    st.pyplot(fig)
-
-    st.subheader("Chest Pain Type vs Heart Disease Output")
+# Show patient records
+if not st.session_state.patient_data.empty:
+    st.subheader("Patient Records")
+    st.write(st.session_state.patient_data)
+    
+    # Generate dynamic plots
+    st.subheader("Data Visualization")
+    
+    # Age Distribution
     fig, ax = plt.subplots()
-    sns.countplot(x="cp", hue="output", data=heart_data, ax=ax, palette="Set2")
+    sns.histplot(st.session_state.patient_data["age"], bins=10, kde=True, color="blue", ax=ax)
+    ax.set_title("Age Distribution")
+    ax.set_xlabel("Age")
+    ax.set_ylabel("Frequency")
+    st.pyplot(fig)
+    
+    # Cholesterol vs. Prediction
+    fig, ax = plt.subplots()
+    sns.boxplot(x="Prediction", y="chol", data=st.session_state.patient_data, palette="Set2", ax=ax)
+    ax.set_title("Cholesterol Levels by Prediction")
+    ax.set_xlabel("Prediction")
+    ax.set_ylabel("Cholesterol")
+    st.pyplot(fig)
+    
+    # Resting Blood Pressure Distribution
+    fig, ax = plt.subplots()
+    sns.histplot(st.session_state.patient_data["trtbps"], bins=10, kde=True, color="green", ax=ax)
+    ax.set_title("Resting Blood Pressure Distribution")
+    ax.set_xlabel("Resting Blood Pressure (trtbps)")
+    ax.set_ylabel("Frequency")
     st.pyplot(fig)
 
-    st.subheader("Feature Importance")
-    feature_importances = model.feature_importances_
-    features = input_df.columns
-    importance_df = pd.DataFrame({"Feature": features, "Importance": feature_importances}).sort_values(by="Importance", ascending=False)
-    fig, ax = plt.subplots()
-    sns.barplot(x="Importance", y="Feature", data=importance_df, ax=ax, palette="mako")
-    st.pyplot(fig)
+else:
+    st.info("No patient data recorded yet. Use the sidebar to add a new patient.")
