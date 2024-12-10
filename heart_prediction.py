@@ -89,30 +89,42 @@ if not st.session_state.patient_data.empty:
     
     # Generate dynamic plots
     st.subheader("Data Visualization")
-    
+    col1, col2 = st.columns(2)
+
     # Age Distribution
-    fig, ax = plt.subplots()
-    sns.histplot(st.session_state.patient_data["age"], bins=10, kde=True, color="blue", ax=ax)
-    ax.set_title("Age Distribution")
-    ax.set_xlabel("Age")
-    ax.set_ylabel("Frequency")
-    st.pyplot(fig)
+    with col1:
+        fig, ax = plt.subplots()
+        sns.histplot(st.session_state.patient_data["age"], bins=10, kde=True, color="blue", ax=ax)
+        ax.set_title("Age Distribution")
+        ax.set_xlabel("Age")
+        ax.set_ylabel("Frequency")
+        st.pyplot(fig)
     
     # Cholesterol vs. Prediction
-    fig, ax = plt.subplots()
-    sns.boxplot(x="Prediction", y="chol", data=st.session_state.patient_data, palette="Set2", ax=ax)
-    ax.set_title("Cholesterol Levels by Prediction")
-    ax.set_xlabel("Prediction")
-    ax.set_ylabel("Cholesterol")
-    st.pyplot(fig)
+    with col2:
+        fig, ax = plt.subplots()
+        sns.boxplot(x="Prediction", y="chol", data=st.session_state.patient_data, palette="Set2", ax=ax)
+        ax.set_title("Cholesterol Levels by Prediction")
+        ax.set_xlabel("Prediction")
+        ax.set_ylabel("Cholesterol")
+        st.pyplot(fig)
     
     # Resting Blood Pressure Distribution
-    fig, ax = plt.subplots()
-    sns.histplot(st.session_state.patient_data["trtbps"], bins=10, kde=True, color="green", ax=ax)
-    ax.set_title("Resting Blood Pressure Distribution")
-    ax.set_xlabel("Resting Blood Pressure (trtbps)")
-    ax.set_ylabel("Frequency")
-    st.pyplot(fig)
+    with col1:
+        fig, ax = plt.subplots()
+        sns.histplot(st.session_state.patient_data["trtbps"], bins=10, kde=True, color="green", ax=ax)
+        ax.set_title("Resting Blood Pressure Distribution")
+        ax.set_xlabel("Resting Blood Pressure (trtbps)")
+        ax.set_ylabel("Frequency")
+        st.pyplot(fig)
 
+    # Heart Rate vs. Prediction
+    with col2:
+        fig, ax = plt.subplots()
+        sns.boxplot(x="Prediction", y="thalachh", data=st.session_state.patient_data, palette="mako", ax=ax)
+        ax.set_title("Heart Rate by Prediction")
+        ax.set_xlabel("Prediction")
+        ax.set_ylabel("Heart Rate")
+        st.pyplot(fig)
 else:
     st.info("No patient data recorded yet. Use the sidebar to add a new patient.")
